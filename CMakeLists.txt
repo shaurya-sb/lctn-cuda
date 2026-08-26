@@ -4,7 +4,14 @@ project(CUDAStuff CUDA)
 set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-add_executable(CUDAStuff main.cu)
+add_executable(CUDAStuff
+        main.cu
+        kernels/matrix_multiply.cu
+        kernels/order3contraction.cu
+        kernels/order4contraction.cu)
+
+target_include_directories(CUDAStuff PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(CUDAStuff PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON)
