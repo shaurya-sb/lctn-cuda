@@ -10,6 +10,7 @@ add_executable(CUDAStuff
         kernels/naivenetworkcontraction.cu
         kernels/order3contraction.cu
         kernels/order4contraction.cu
+        kernels/tiltedcontraction.cu
         kernels/tilted_matrixmult.cu)
 
 target_include_directories(CUDAStuff PRIVATE
