@@ -6,6 +6,10 @@ void naiveNetworkContractionGpu(const float* A, const float* B, const float* D,
                                 float* C, int I, int J, int K, int L, int M,
                                 int N);
 
+void naiveNetworkContractionDevice(const float* dA, const float* dB, float* dT,
+                                   const float* dD, float* dC, int I, int J,
+                                   int K, int L, int M, int N);
+
 void naiveNetworkContractionCpu(const float* A, const float* B, const float* D,
                                 float* C, int I, int J, int K, int L, int M,
                                 int N);

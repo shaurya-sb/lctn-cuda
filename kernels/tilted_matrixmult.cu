@@ -80,6 +80,17 @@ void tiltedMatrixMultiplicationGpu(const float* A, const float* B, float* C,
     CUDA_CHECK(cudaMemcpy(dA, A, bytesA, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dB, B, bytesB, cudaMemcpyHostToDevice));
 
+    tiltedMatrixMultiplicationDevice(dA, dB, dC, M, N, K);
+
+    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
+
+    CUDA_CHECK(cudaFree(dA));
+    CUDA_CHECK(cudaFree(dB));
+    CUDA_CHECK(cudaFree(dC));
+}
+
+void tiltedMatrixMultiplicationDevice(const float* dA, const float* dB,
+                                      float* dC, int M, int N, int K) {
     dim3 threadsPerBlock(TILE_SIZE, TILE_SIZE);
     dim3 blocksPerGrid((N + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (M + threadsPerBlock.y - 1) / threadsPerBlock.y);
@@ -88,12 +99,6 @@ void tiltedMatrixMultiplicationGpu(const float* A, const float* B, float* C,
                                                                    M, N, K);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-
-    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
-
-    CUDA_CHECK(cudaFree(dA));
-    CUDA_CHECK(cudaFree(dB));
-    CUDA_CHECK(cudaFree(dC));
 }
 
 void tiltedMatrixMultiplicationCpu(const float* A, const float* B, float* C,

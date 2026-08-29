@@ -29,15 +29,20 @@ void matrixMultiplicationGpu(const float* A, const float* B, float* C, int M, in
     CUDA_CHECK(cudaMalloc(&dC, bytesC));
     CUDA_CHECK(cudaMemcpy(dA, A, bytesA, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dB, B, bytesB, cudaMemcpyHostToDevice));
+    matrixMultiplicationDevice(dA, dB, dC, M, N, K);
+    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaFree(dA));
+    CUDA_CHECK(cudaFree(dB));
+    CUDA_CHECK(cudaFree(dC));
+}
+
+void matrixMultiplicationDevice(const float* dA, const float* dB, float* dC,
+                                int M, int N, int K) {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((N + threadsPerBlock.x - 1) / threadsPerBlock.x, (M + threadsPerBlock.y - 1) / threadsPerBlock.y);
     naiveMatrixMultiplyKernel<<<blocksPerGrid, threadsPerBlock>>>(dA, dB, dC, M, N, K);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaFree(dA));
-    CUDA_CHECK(cudaFree(dB));
-    CUDA_CHECK(cudaFree(dC));
 }
 
 void matrixMultiplicationCpu(const float* A, const float* B, float* C, int M, int N, int K) {

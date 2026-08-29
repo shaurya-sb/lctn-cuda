@@ -67,6 +67,20 @@ void naiveNetworkContractionGpu(const float* A, const float* B, const float* D,
     CUDA_CHECK(cudaMemcpy(dB, B, bytesB, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dD, D, bytesD, cudaMemcpyHostToDevice));
 
+    naiveNetworkContractionDevice(dA, dB, dT, dD, dC, I, J, K, L, M, N);
+
+    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
+
+    CUDA_CHECK(cudaFree(dA));
+    CUDA_CHECK(cudaFree(dB));
+    CUDA_CHECK(cudaFree(dT));
+    CUDA_CHECK(cudaFree(dD));
+    CUDA_CHECK(cudaFree(dC));
+}
+
+void naiveNetworkContractionDevice(const float* dA, const float* dB, float* dT,
+                                   const float* dD, float* dC, int I, int J,
+                                   int K, int L, int M, int N) {
     order3contractionDevice(dA, dB, dT, I, J, K, L, M);
 
     dim3 threadsPerBlock(8, 8, 4);
@@ -78,14 +92,6 @@ void naiveNetworkContractionGpu(const float* A, const float* B, const float* D,
         dT, dD, dC, I, J, L, M, N);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-
-    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
-
-    CUDA_CHECK(cudaFree(dA));
-    CUDA_CHECK(cudaFree(dB));
-    CUDA_CHECK(cudaFree(dT));
-    CUDA_CHECK(cudaFree(dD));
-    CUDA_CHECK(cudaFree(dC));
 }
 
 void naiveNetworkContractionCpu(const float* A, const float* B, const float* D,
