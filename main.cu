@@ -19,6 +19,7 @@ struct BenchmarkResult {
     std::string problem;
     double cpuMs;
     double gpuMs;
+    double gpuVsNaive;
     bool correct;
 };
 
@@ -67,8 +68,9 @@ void printResults(const std::vector<BenchmarkResult>& results) {
     std::cout << std::left << std::setw(34) << "Kernel" << std::setw(18)
               << "Problem" << std::right << std::setw(12) << "CPU ms"
               << std::setw(12) << "GPU ms" << std::setw(12) << "Speedup"
-              << std::setw(10) << "Correct" << '\n';
-    std::cout << std::string(98, '-') << '\n';
+              << std::setw(14) << "vs naive GPU" << std::setw(10)
+              << "Correct" << '\n';
+    std::cout << std::string(112, '-') << '\n';
 
     for (const BenchmarkResult& result : results) {
         double speedup = result.gpuMs > 0.0 ? result.cpuMs / result.gpuMs : 0.0;
@@ -76,8 +78,13 @@ void printResults(const std::vector<BenchmarkResult>& results) {
                   << std::setw(18) << result.problem << std::right
                   << std::setw(12) << std::fixed << std::setprecision(3)
                   << result.cpuMs << std::setw(12) << result.gpuMs
-                  << std::setw(12) << speedup << std::setw(10)
-                  << (result.correct ? "yes" : "no") << '\n';
+                  << std::setw(12) << speedup;
+        if (result.gpuVsNaive > 0.0) {
+            std::cout << std::setw(14) << result.gpuVsNaive;
+        } else {
+            std::cout << std::setw(14) << "-";
+        }
+        std::cout << std::setw(10) << (result.correct ? "yes" : "no") << '\n';
     }
 }
 
@@ -103,9 +110,10 @@ int main() {
             matrixMultiplicationGpu(A.data(), B.data(), gpu.data(), rows, cols,
                                     inner);
         });
+        double naiveGpuMs = gpuMs;
 
         results.push_back({"Matrix multiply naive", "256x256x256", cpuMs,
-                           gpuMs, outputsMatch(cpu, gpu)});
+                           gpuMs, 1.0, outputsMatch(cpu, gpu)});
 
         gpu.assign(gpu.size(), 0.0f);
         gpuMs = averageGpuMs([&] {
@@ -114,7 +122,7 @@ int main() {
         });
 
         results.push_back({"Matrix multiply tiled", "256x256x256", cpuMs,
-                           gpuMs, outputsMatch(cpu, gpu)});
+                           gpuMs, naiveGpuMs / gpuMs, outputsMatch(cpu, gpu)});
     }
 
     {
@@ -139,9 +147,10 @@ int main() {
             naiveOrder3ContractionGpu(A.data(), B.data(), gpu.data(), I, J, K,
                                       L, M);
         });
+        double naiveGpuMs = gpuMs;
 
         results.push_back({"Order-3 contraction naive", "16,16,64,16,16",
-                           cpuMs, gpuMs, outputsMatch(cpu, gpu)});
+                           cpuMs, gpuMs, 1.0, outputsMatch(cpu, gpu)});
 
         gpu.assign(gpu.size(), 0.0f);
         gpuMs = averageGpuMs([&] {
@@ -149,7 +158,8 @@ int main() {
         });
 
         results.push_back({"Order-3 contraction tiled", "16,16,64,16,16",
-                           cpuMs, gpuMs, outputsMatch(cpu, gpu)});
+                           cpuMs, gpuMs, naiveGpuMs / gpuMs,
+                           outputsMatch(cpu, gpu)});
     }
 
     {
@@ -177,7 +187,7 @@ int main() {
         });
 
         results.push_back({"Order-4 contraction naive", "8,8,32,16,8,32",
-                           cpuMs, gpuMs, outputsMatch(cpu, gpu)});
+                           cpuMs, gpuMs, 0.0, outputsMatch(cpu, gpu)});
     }
 
     {
@@ -205,9 +215,10 @@ int main() {
             naiveNetworkContractionGpu(A.data(), B.data(), D.data(), gpu.data(),
                                        I, J, K, L, M, N);
         });
+        double naiveGpuMs = gpuMs;
 
         results.push_back({"Network contraction naive", "16,16,64,16,16,64",
-                           cpuMs, gpuMs, outputsMatch(cpu, gpu)});
+                           cpuMs, gpuMs, 1.0, outputsMatch(cpu, gpu)});
 
         gpu.assign(gpu.size(), 0.0f);
         gpuMs = averageGpuMs([&] {
@@ -216,7 +227,8 @@ int main() {
         });
 
         results.push_back({"Network contraction tiled", "16,16,64,16,16,64",
-                           cpuMs, gpuMs, outputsMatch(cpu, gpu)});
+                           cpuMs, gpuMs, naiveGpuMs / gpuMs,
+                           outputsMatch(cpu, gpu)});
     }
 
     printResults(results);
