@@ -53,6 +53,17 @@ void order3contraction(const float* A, const float* B, float* C, int I, int J,
     CUDA_CHECK(cudaMemcpy(dA, A, bytesA, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dB, B, bytesB, cudaMemcpyHostToDevice));
 
+    order3contractionDevice(dA, dB, dC, I, J, K, L, M);
+
+    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
+
+    CUDA_CHECK(cudaFree(dA));
+    CUDA_CHECK(cudaFree(dB));
+    CUDA_CHECK(cudaFree(dC));
+}
+
+void order3contractionDevice(const float* dA, const float* dB, float* dC,
+                             int I, int J, int K, int L, int M) {
     dim3 threadsPerBlock(8, 8, 4);
     dim3 blocksPerGrid((I + threadsPerBlock.x - 1) / threadsPerBlock.x,
                        (J + threadsPerBlock.y - 1) / threadsPerBlock.y,
@@ -62,10 +73,4 @@ void order3contraction(const float* A, const float* B, float* C, int I, int J,
                                                                 J, K, L, M);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
-
-    CUDA_CHECK(cudaMemcpy(C, dC, bytesC, cudaMemcpyDeviceToHost));
-
-    CUDA_CHECK(cudaFree(dA));
-    CUDA_CHECK(cudaFree(dB));
-    CUDA_CHECK(cudaFree(dC));
 }

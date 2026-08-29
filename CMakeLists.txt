@@ -7,8 +7,10 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 add_executable(CUDAStuff
         main.cu
         kernels/matrix_multiply.cu
+        kernels/naivenetworkcontraction.cu
         kernels/order3contraction.cu
-        kernels/order4contraction.cu)
+        kernels/order4contraction.cu
+        kernels/tilted_matrixmult.cu)
 
 target_include_directories(CUDAStuff PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR})
